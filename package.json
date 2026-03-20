@@ -1,0 +1,46 @@
+{
+  "name": "azstorage-mcp-server",
+  "version": "1.0.0",
+  "description": "Read-only Azure Storage MCP Server for Blob, Queue, and Table Storage",
+  "main": "dist/index.js",
+  "bin": {
+    "azstorage-mcp-server": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "test": "vitest run"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/akryk7316/azstorage-mcp-server.git"
+  },
+  "keywords": [
+    "azure",
+    "storage",
+    "mcp",
+    "blob",
+    "queue",
+    "table"
+  ],
+  "author": "akryk7316",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/akryk7316/azstorage-mcp-server/issues"
+  },
+  "homepage": "https://github.com/akryk7316/azstorage-mcp-server#readme",
+  "dependencies": {
+    "@azure/data-tables": "^13.3.2",
+    "@azure/identity": "^4.13.1",
+    "@azure/storage-blob": "^12.31.0",
+    "@azure/storage-queue": "^12.29.0",
+    "@modelcontextprotocol/sdk": "^1.27.1"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.0"
+  }
+}
