@@ -2,6 +2,9 @@
 
 Read-only Azure Storage MCP (Model Context Protocol) Server for Blob Storage, Queue Storage, and Table Storage.
 
+[![npm version](https://img.shields.io/npm/v/azstorage-mcp-server)](https://www.npmjs.com/package/azstorage-mcp-server)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 ## Features
 
 - **Read-only** — no write, update, or delete operations
@@ -12,39 +15,58 @@ Read-only Azure Storage MCP (Model Context Protocol) Server for Blob Storage, Qu
 - **LLM-optimized responses** — compact JSON, truncated text, no unnecessary fields
 - **Connection string or Managed Identity** authentication via environment variables
 
+## Installation
+
+```bash
+npm install -g azstorage-mcp-server
+```
+
+Or use without installing via `npx`:
+
+```bash
+npx azstorage-mcp-server
+```
+
 ## Authentication
 
-Set **one** of the following environment variables:
+Set **one** of the following environment variables before starting the server:
 
 | Variable | Description |
 |---|---|
 | `AZURE_STORAGE_CONNECTION_STRING` | Full connection string (takes priority) |
 | `AZURE_STORAGE_ACCOUNT_NAME` | Storage account name; uses `DefaultAzureCredential` (Managed Identity, Azure CLI, etc.) |
 
-Copy `.env.example` to `.env` and fill in your values.
+## MCP Client Configuration
 
-## Installation
+### Claude Desktop
 
-```bash
-npm install
-npm run build
+Add the following to your `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "azstorage": {
+      "command": "npx",
+      "args": ["-y", "azstorage-mcp-server"],
+      "env": {
+        "AZURE_STORAGE_CONNECTION_STRING": "<your-connection-string>"
+      }
+    }
+  }
+}
 ```
 
-## Usage
+To use Managed Identity instead, replace the `env` block with:
 
-```bash
-# Start with connection string
-AZURE_STORAGE_CONNECTION_STRING="..." npm start
-
-# Start with Managed Identity
-AZURE_STORAGE_ACCOUNT_NAME="mystorageaccount" npm start
+```json
+"env": {
+  "AZURE_STORAGE_ACCOUNT_NAME": "<your-storage-account-name>"
+}
 ```
 
-Or run directly in development mode:
+### Other MCP clients (Cursor, VS Code, etc.)
 
-```bash
-AZURE_STORAGE_CONNECTION_STRING="..." npm run dev
-```
+Use the same pattern with `npx -y azstorage-mcp-server` as the command and supply one of the authentication environment variables.
 
 ## MCP Tools
 
@@ -99,9 +121,12 @@ Use `cursor` from the previous response to fetch the next page.
 ## Development
 
 ```bash
-npm test       # run unit tests
-npm run build  # compile TypeScript → dist/
-npm run dev    # run with tsx (no compilation)
+git clone https://github.com/akryk7316/azstorage-mcp-server.git
+cd azstorage-mcp-server
+npm install
+npm run build   # compile TypeScript → dist/
+npm test        # run unit tests
+npm run dev     # run with tsx (no compilation needed)
 ```
 
 ## License
