@@ -97,4 +97,49 @@ describe("queryTable", () => {
       },
     });
   });
+
+  it("skips entities when skip is provided", async () => {
+    const allEntities = [
+      { partitionKey: "pk1", rowKey: "rk1", value: "first" },
+      { partitionKey: "pk1", rowKey: "rk2", value: "second" },
+      { partitionKey: "pk1", rowKey: "rk3", value: "third" },
+    ];
+
+    // First call (skip phase): returns first 2 items with a continuation token
+    // Second call (data phase): returns remaining items
+    const mockTableClient = {
+      listEntities: vi
+        .fn()
+        .mockReturnValueOnce(
+          makeAsyncIterable([allEntities[0], allEntities[1]], "cursor-after-2")
+        )
+        .mockReturnValueOnce(makeAsyncIterable([allEntities[2]])),
+    } as unknown as TableClient;
+
+    const result = await queryTable(mockTableClient, {
+      table: "mytable",
+      skip: 2,
+    });
+
+    expect(result.items).toHaveLength(1);
+    const item = result.items[0] as { value: string };
+    expect(item.value).toBe("third");
+  });
+
+  it("handles skip larger than total entities gracefully", async () => {
+    const mockTableClient = {
+      listEntities: vi
+        .fn()
+        .mockReturnValueOnce(makeAsyncIterable([{ partitionKey: "pk1", rowKey: "rk1" }]))
+        .mockReturnValueOnce(makeAsyncIterable([])),
+    } as unknown as TableClient;
+
+    const result = await queryTable(mockTableClient, {
+      table: "mytable",
+      skip: 100,
+    });
+
+    expect(result.items).toHaveLength(0);
+    expect(result.page.hasMore).toBe(false);
+  });
 });
