@@ -1,0 +1,1 @@
+# azstorage-mcp-server
