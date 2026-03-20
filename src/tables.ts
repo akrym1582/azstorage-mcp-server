@@ -6,7 +6,7 @@
  */
 
 import type { TableServiceClient, TableClient } from "@azure/data-tables";
-import { clampPageSize, makePagedResult } from "./types.js";
+import { clampPageSize, makePagedResult, MAX_PAGE_SIZE } from "./types.js";
 
 // ────────────────────────────────────────────────────────────
 // list
@@ -74,6 +74,7 @@ export interface QueryTableInput {
   select?: string[];
   pageSize?: number;
   cursor?: string;
+  skip?: number;
 }
 
 export async function queryTable(
@@ -81,6 +82,37 @@ export async function queryTable(
   input: QueryTableInput
 ) {
   const pageSize = clampPageSize(input.pageSize);
+  const skipCount = Math.max(0, Math.floor(input.skip ?? 0));
+
+  let currentCursor = input.cursor ?? undefined;
+
+  // Client-side skip: Azure Table Storage does not support OData $skip natively.
+  // Consume pages of entities until skipCount items have been passed over.
+  if (skipCount > 0) {
+    let totalSkipped = 0;
+    while (totalSkipped < skipCount) {
+      const batchSize = Math.min(skipCount - totalSkipped, MAX_PAGE_SIZE);
+      const skipIter = tableClient.listEntities({
+        queryOptions: {
+          filter: input.filter ?? undefined,
+          select: ["PartitionKey", "RowKey"],
+        },
+      });
+      const skipPage = skipIter.byPage({
+        maxPageSize: batchSize,
+        continuationToken: currentCursor,
+      });
+      const skipResult = await skipPage.next();
+      const skippedItems: unknown[] = Array.isArray(skipResult.value)
+        ? skipResult.value
+        : [];
+      totalSkipped += skippedItems.length;
+      currentCursor =
+        (skipResult as { continuationToken?: string }).continuationToken ??
+        undefined;
+      if (skippedItems.length < batchSize || !currentCursor) break;
+    }
+  }
 
   const iter = tableClient.listEntities({
     queryOptions: {
@@ -91,7 +123,7 @@ export async function queryTable(
 
   const page = iter.byPage({
     maxPageSize: pageSize,
-    continuationToken: input.cursor ?? undefined,
+    continuationToken: currentCursor,
   });
   const result = await page.next();
   const segment: Record<string, unknown>[] = Array.isArray(result.value) ? result.value : [];

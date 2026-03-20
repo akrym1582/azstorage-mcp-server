@@ -157,6 +157,7 @@ export interface ReadBlobInput {
   container: string;
   blob: string;
   maxBytes?: number;
+  skipBytes?: number;
 }
 
 export async function readBlob(
@@ -181,7 +182,10 @@ export async function readBlob(
     contentType.includes("javascript") ||
     contentType.includes("yaml");
 
-  if (!isText || size > maxBytes) {
+  const offset = Math.min(Math.max(0, input.skipBytes ?? 0), size);
+  const remainingBytes = size - offset;
+
+  if (!isText || remainingBytes > maxBytes) {
     return {
       name: input.blob,
       size,
@@ -195,7 +199,7 @@ export async function readBlob(
     };
   }
 
-  const downloadResponse = await blobClient.download(0, maxBytes);
+  const downloadResponse = await blobClient.download(offset, maxBytes);
   const chunks: Buffer[] = [];
   for await (const chunk of downloadResponse.readableStreamBody as AsyncIterable<Buffer>) {
     chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
@@ -210,7 +214,7 @@ export async function readBlob(
     etag: props.etag ?? null,
     metadata: props.metadata ?? {},
     content: text,
-    truncated: text.length === maxBytes && size > maxBytes,
+    truncated: text.length === maxBytes && remainingBytes > maxBytes,
     hint: null,
   };
 }
