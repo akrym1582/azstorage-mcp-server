@@ -1,4 +1,4 @@
-# azstorage-mcp-server
+# @akrym1582/azstorage-mcp-server
 
 Read-only Azure Storage MCP (Model Context Protocol) Server for Blob Storage, Queue Storage, and Table Storage.
 
