@@ -1,5 +1,5 @@
 {
-  "name": "azstorage-mcp-server",
+  "name": "@akrym1582/azstorage-mcp-server",
   "version": "1.0.1",
   "description": "Read-only Azure Storage MCP Server for Blob, Queue, and Table Storage",
   "type": "module",
@@ -14,10 +14,14 @@
   "bin": {
     "azstorage-mcp-server": "dist/index.js"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "files": [
     "dist",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    ".env.example"
   ],
   "scripts": {
     "build": "tsc",
@@ -31,7 +35,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/akryk7316/azstorage-mcp-server.git"
+    "url": "git+https://github.com/akrym1582/azstorage-mcp-server.git"
   },
   "keywords": [
     "azure",
@@ -44,12 +48,12 @@
     "llm",
     "ai"
   ],
-  "author": "akryk7316",
+  "author": "akrym1582",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/akryk7316/azstorage-mcp-server/issues"
+    "url": "https://github.com/akrym1582/azstorage-mcp-server/issues"
   },
-  "homepage": "https://github.com/akryk7316/azstorage-mcp-server#readme",
+  "homepage": "https://github.com/akrym1582/azstorage-mcp-server#readme",
   "dependencies": {
     "@azure/data-tables": "^13.3.2",
     "@azure/identity": "^4.13.1",

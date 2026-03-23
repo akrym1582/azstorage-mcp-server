@@ -2,7 +2,7 @@
 
 Read-only Azure Storage MCP (Model Context Protocol) Server for Blob Storage, Queue Storage, and Table Storage.
 
-[![npm version](https://img.shields.io/npm/v/azstorage-mcp-server)](https://www.npmjs.com/package/azstorage-mcp-server)
+[![npm version](https://img.shields.io/npm/v/%40akrym1582%2Fazstorage-mcp-server)](https://www.npmjs.com/package/%40akrym1582%2Fazstorage-mcp-server)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Features
@@ -18,13 +18,13 @@ Read-only Azure Storage MCP (Model Context Protocol) Server for Blob Storage, Qu
 ## Installation
 
 ```bash
-npm install -g azstorage-mcp-server
+npm install -g @akrym1582/azstorage-mcp-server
 ```
 
 Or use without installing via `npx`:
 
 ```bash
-npx azstorage-mcp-server
+npx @akrym1582/azstorage-mcp-server
 ```
 
 ## Authentication
@@ -47,7 +47,7 @@ Add the following to your `claude_desktop_config.json`:
   "mcpServers": {
     "azstorage": {
       "command": "npx",
-      "args": ["-y", "azstorage-mcp-server"],
+      "args": ["-y", "@akrym1582/azstorage-mcp-server"],
       "env": {
         "AZURE_STORAGE_CONNECTION_STRING": "<your-connection-string>"
       }
@@ -66,7 +66,7 @@ To use Managed Identity instead, replace the `env` block with:
 
 ### Other MCP clients (Cursor, VS Code, etc.)
 
-Use the same pattern with `npx -y azstorage-mcp-server` as the command and supply one of the authentication environment variables.
+Use the same pattern with `npx -y @akrym1582/azstorage-mcp-server` as the command and supply one of the authentication environment variables.
 
 ## MCP Tools
 
@@ -121,7 +121,7 @@ Use `cursor` from the previous response to fetch the next page.
 ## Development
 
 ```bash
-git clone https://github.com/akryk7316/azstorage-mcp-server.git
+git clone https://github.com/akrym1582/azstorage-mcp-server.git
 cd azstorage-mcp-server
 npm install
 npm run build   # compile TypeScript → dist/
