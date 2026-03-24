@@ -1,6 +1,6 @@
 {
   "name": "@akrym1582/azstorage-mcp-server",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Read-only Azure Storage MCP Server for Blob, Queue, and Table Storage",
   "type": "module",
   "main": "dist/index.js",
