@@ -233,7 +233,38 @@ describe("readBlob", () => {
     expect(mockBlobClient.download).not.toHaveBeenCalled();
   });
 
-  it("returns hint when remaining bytes after skip exceed maxBytes", async () => {
+  it("infers a text content type from common extensions", async () => {
+    const mockBlobClient = {
+      getProperties: vi.fn().mockResolvedValue({
+        contentLength: 13,
+        contentType: "application/octet-stream",
+        lastModified: new Date("2024-01-01"),
+        etag: '"etag1"',
+        metadata: {},
+      }),
+      download: vi.fn().mockResolvedValue({
+        readableStreamBody: makeReadableStream("# hello world"),
+      }),
+    };
+    const mockContainerClient = {
+      getBlobClient: vi.fn().mockReturnValue(mockBlobClient),
+    };
+    const mockClient = {
+      getContainerClient: vi.fn().mockReturnValue(mockContainerClient),
+    } as unknown as BlobServiceClient;
+
+    const result = await readBlob(mockClient, {
+      container: "c",
+      blob: "README.md",
+    });
+
+    expect(result.contentType).toBe("text/markdown");
+    expect(result.content).toBe("# hello world");
+    expect(result.hint).toBeNull();
+    expect(mockBlobClient.download).toHaveBeenCalledWith(0, 8192);
+  });
+
+  it("returns up to maxBytes for large text blobs and marks the response truncated", async () => {
     const mockBlobClient = {
       getProperties: vi.fn().mockResolvedValue({
         contentLength: 10000,
@@ -242,7 +273,9 @@ describe("readBlob", () => {
         etag: '"etag1"',
         metadata: {},
       }),
-      download: vi.fn(),
+      download: vi.fn().mockResolvedValue({
+        readableStreamBody: makeReadableStream("a".repeat(8192)),
+      }),
     };
     const mockContainerClient = {
       getBlobClient: vi.fn().mockReturnValue(mockBlobClient),
@@ -258,10 +291,9 @@ describe("readBlob", () => {
       skipBytes: 1000,
     });
 
-    expect(result.content).toBeNull();
-    expect(result.hint).toBe(
-      "Use storage.blobs.download to retrieve binary or large content."
-    );
-    expect(mockBlobClient.download).not.toHaveBeenCalled();
+    expect(mockBlobClient.download).toHaveBeenCalledWith(1000, 8192);
+    expect(result.content).toBe("a".repeat(8192));
+    expect(result.truncated).toBe(true);
+    expect(result.hint).toBeNull();
   });
 });

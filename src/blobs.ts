@@ -14,6 +14,53 @@ import {
   MAX_TEXT_INLINE_BYTES,
 } from "./types.js";
 
+const TEXT_CONTENT_TYPES_BY_EXTENSION: Record<string, string> = {
+  ".csv": "text/csv",
+  ".htm": "text/html",
+  ".html": "text/html",
+  ".ini": "text/plain",
+  ".js": "application/javascript",
+  ".json": "application/json",
+  ".log": "text/plain",
+  ".md": "text/markdown",
+  ".txt": "text/plain",
+  ".xml": "application/xml",
+  ".yaml": "application/yaml",
+  ".yml": "application/yaml",
+};
+
+function inferContentType(contentType: string | undefined, blobName: string): string {
+  const normalizedContentType = contentType?.trim().toLowerCase();
+  if (
+    normalizedContentType &&
+    normalizedContentType !== "" &&
+    normalizedContentType !== "application/octet-stream"
+  ) {
+    return normalizedContentType;
+  }
+
+  const extensionIndex = blobName.lastIndexOf(".");
+  if (extensionIndex >= 0) {
+    const extension = blobName.slice(extensionIndex).toLowerCase();
+    const inferredContentType = TEXT_CONTENT_TYPES_BY_EXTENSION[extension];
+    if (inferredContentType) {
+      return inferredContentType;
+    }
+  }
+
+  return normalizedContentType || "application/octet-stream";
+}
+
+function isLikelyTextContent(contentType: string): boolean {
+  return (
+    contentType.startsWith("text/") ||
+    contentType.includes("json") ||
+    contentType.includes("xml") ||
+    contentType.includes("javascript") ||
+    contentType.includes("yaml")
+  );
+}
+
 // ────────────────────────────────────────────────────────────
 // listContainers
 // ────────────────────────────────────────────────────────────
@@ -174,18 +221,13 @@ export async function readBlob(
 
   const props = await blobClient.getProperties();
   const size = props.contentLength ?? 0;
-  const contentType = props.contentType ?? "application/octet-stream";
-  const isText =
-    contentType.startsWith("text/") ||
-    contentType.includes("json") ||
-    contentType.includes("xml") ||
-    contentType.includes("javascript") ||
-    contentType.includes("yaml");
+  const contentType = inferContentType(props.contentType, input.blob);
+  const isText = isLikelyTextContent(contentType);
 
   const offset = Math.min(Math.max(0, input.skipBytes ?? 0), size);
   const remainingBytes = size - offset;
 
-  if (!isText || remainingBytes > maxBytes) {
+  if (!isText) {
     return {
       name: input.blob,
       size,
@@ -204,7 +246,8 @@ export async function readBlob(
   for await (const chunk of downloadResponse.readableStreamBody as AsyncIterable<Buffer>) {
     chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
   }
-  const text = Buffer.concat(chunks).toString("utf-8");
+  const data = Buffer.concat(chunks);
+  const text = data.toString("utf-8");
 
   return {
     name: input.blob,
@@ -214,7 +257,7 @@ export async function readBlob(
     etag: props.etag ?? null,
     metadata: props.metadata ?? {},
     content: text,
-    truncated: text.length === maxBytes && remainingBytes > maxBytes,
+    truncated: remainingBytes > maxBytes,
     hint: null,
   };
 }
